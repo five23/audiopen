@@ -1,0 +1,61 @@
+body {
+	padding: 0;
+	margin: 0;
+	background-color: #080808;
+	width: 100%;
+}
+#gui {
+	position: absolute;
+	margin: 0;
+	padding: 10px 0px 0px 15px;
+	top: 0px;
+	height: 100%;
+	width: 480px;
+	display: block;
+	z-index: 2;
+}
+#editor {
+	position: absolute;
+	top: 0;
+	right: 0;
+	left: 480px;
+	bottom: 0;
+	font-size:125%;
+}
+#waveform {
+	padding: 0 0 0 0;
+	margin: 0 0 2px 2px;
+	border: 2px solid #161616;
+	opacity: 1;
+}
+.btn {
+	padding: 13px 15px 10px 15px;
+	margin: 0 1px 0 0;
+	text-decoration: none;
+	text-align: center;
+	color: #888;
+	cursor: pointer;
+}
+.button-group-navigation li {
+	display: inline-block;
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	zoom: 1;
+}
+.button-group-navigation li .btn {
+	float: left;
+	margin-left: -4px;
+}
+.button-group-navigation > .btn:not(:first-child):not(:last-child),
+.button-group-navigation li:not(:first-child):not(:last-child) .btn {
+	border-radius: 0;
+}
+.button-group-navigation > .btn:first-child,
+.button-group-navigation li:first-child .btn {
+	margin-left: 0;
+}
+.button-group-navigation > .btn:last-child,
+.button-group-navigation li:last-child > .btn {
+	margin-right: 0;
+}

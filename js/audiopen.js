@@ -1,25 +1,62 @@
+/*
+ * audiopen.js
+ * @author David Scott Kirby
+ */
+
 var audiopen = null;
 
+/**
+ * onload
+ */
 window.onload = function () {
 
     nx.colorize("orange");
     nx.colorize("border", "#161616");
     nx.colorize("fill", "#000");
+    nx.showLabels = true;
     nx.sendsTo("js");
+     
+    // Reset vca to zero
+    vca.val.x = 0, vca.val.y = 0, vca.theta = 0, vca.step = 0,
+    vca.n = 0, vca.out = 0, vca.amp = 0, vca.fb = 0; vca.draw();
+    
+    // Reset vcb to zero
+    vcb.val.x = 0, vcb.val.y = 0, vcb.theta = 0, vcb.step = 0, 
+    vcb.n = 0, vcb.out = 0, vcb.amp = 0, vcb.fb = 0; vcb.draw();
 
-    vca.val.x = 0;
-    vca.val.y = 0;
-    vcb.val.x = 0;
-    vcb.val.y = 0;
-    vcc.val.x = 0;
-    vcc.val.y = 0;
-    vcd.val.x = 0;
-    vcd.val.y = 0;
+    // Reset vcc to zero
+    vcc.val.x = 0, vcc.val.y = 0, vcc.theta = 0, vcc.step = 0, 
+    vcc.n = 0, vcc.out = 0, vcc.amp = 0, vcc.fb = 0; vcc.draw();
+    
+    cca1.val = 0.5; cca1.draw();
+    cca2.val = 0.5; cca2.draw();
+    cca3.val = 0.5; cca3.draw();
+    cca4.val = 0; cca4.draw();
+    cca5.val = 0; cca5.draw();
+    
+    ccb1.val = 0.5; ccb1.draw();
+    ccb2.val = 0.5; ccb2.draw();
+    ccb3.val = 0.5; ccb3.draw();
+    ccb4.val = 0; ccb4.draw();
+    ccb5.val = 0; ccb5.draw();
+
+    ccc1.val = 0.5; ccc1.draw();
+    ccc2.val = 0.5; ccc2.draw();
+    ccc3.val = 0.5; ccc3.draw();
+    ccc4.val = 0; ccc4.draw();
+    ccc5.val = 0; ccc5.draw();
+    
+    fxa.val = 0, fxa.n = 0, fxa.draw();
+    fxb.val = 0.75, fxb.n = 0, fxb.draw();
+    fxc.val = 0.75, fxc.n = 0, fxc.draw();
 
     audiopen = new AudioPen();
     audiopen.start();
 };
 
+/**
+ * AudioPen
+ */
 function AudioPen() {
     this.apiFunctionNames = ["process"];
     this.isPlaying = false;
@@ -27,19 +64,19 @@ function AudioPen() {
     this.lastCodeChangeTime = 0;
     this.lastCompilationTime = 0;
     this.compilationDelay = 1E3;
-    this.sampleRate = 44100;
-    this.bufferSize = 2048;
+    this.sampleRate = 48000;
+    this.bufferSize = 1024;
     this.t = 0;
 }
 
-function AudioPenAPI(a) {
-    var core = a;
-    this.sampleRate = function () {
-        return core.sampleRate;
-    };
-}
-
+/**
+ * AudioPen.prototype
+ */
 AudioPen.prototype = {
+
+    /**
+     * start
+     */
     start: function () {
 
         var self = this;
@@ -67,7 +104,8 @@ AudioPen.prototype = {
 
         this.compileCode();
         this.channelCount = 1;
-        this.audioContext = new window.AudioContext();
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext);
+        this.gainNode = this.audioContext.createGain();
         this.audioBuffer = this.audioContext.createBuffer(this.channelCount, this.sampleRate, this.sampleRate);
         this.bufferSource = this.audioContext.createScriptProcessor(this.bufferSize, 0, 1);
         this.bufferSource.onaudioprocess = function (e) {
@@ -75,13 +113,20 @@ AudioPen.prototype = {
             self.executeCode(buffer);
         };
 
-        this.bufferSource.connect(this.audioContext.destination);
+        this.bufferSource.connect(this.gainNode);
+        this.gainNode.connect(this.audioContext.destination);
+        this.gainNode.gain.setValueAtTime(0.25, this.audioContext.currentTime);
         this.analyser = this.audioContext.createAnalyser();
         this.analyser.fftsize = 1024;
         this.bufferSource.connect(this.analyser);
         this.amplitudeData = new Uint8Array(this.analyser.frequencyBinCount);
         this.mainLoop();
     },
+
+    /**
+     * compileCode
+     * @returns {Boolean}
+     */
     compileCode: function () {
         var code = this.editor.getValue();
         var memberDefs = [];
@@ -102,11 +147,18 @@ AudioPen.prototype = {
         this.compiledCode = pack;
         return true;
     },
+
+    /**
+     * executeCode
+     * @param {Audio} buffer
+     */
     executeCode: function (buffer) {
         if (buffer === null) return;
         try {
             if (this.isPlaying) {
+
                 buffer = this.compiledCode.process(buffer);
+
             } else {
                 for (var i = 0; i < buffer.length; ++i) {
                     buffer[i] = 0;
@@ -116,22 +168,51 @@ AudioPen.prototype = {
             console.log("Execution error: " + ex.message + "\n" + ex.stack);
         }
     },
+
+    /**
+     * onPlayToggle
+     */
     onPlayToggle: function () {
+      if (!this.isPlaying) {
+        audiopen.audioContext.resume().then(() => {
+          console.log('Playback resumed successfully');
+        });
         this.isPlaying = true;
+      } else {
+        this.isPlaying = false;
+      }
     },
+
+    /**
+     * onStopToggle
+     */
     onStopToggle: function () {
         this.isPlaying = false;
     },
+
+    /**
+     * mainLoop
+     */
     mainLoop: function () {
+
         var self = this;
+
         requestAnimationFrame(function () {
             self.mainLoop();
         });
-        if (Date.now() - this.lastCodeChangeTime > this.compilationDelay && this.lastCodeChangeTime > this.lastCompilationTime) this.compileCode();
-        if (this.compiledCode.onGui) this.compiledCode.onGui();
+
+        if (Date.now() - this.lastCodeChangeTime > this.compilationDelay && this.lastCodeChangeTime > this.lastCompilationTime) {
+            this.compileCode();
+        }
+
         this.analyser.getByteTimeDomainData(this.amplitudeData);
+
         this.renderWave();
     },
+
+    /**
+     * renderWave
+     */
     renderWave: function () {
         var g = this.waveformContext;
         var canvas = this.waveform;

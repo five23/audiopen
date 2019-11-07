@@ -21,66 +21,200 @@
 				</a>
 			</li>
 		</div>
-		<canvas id="waveform" width="443px" height="240px"></canvas>	
-		<canvas id="vca" nx="position" width="450px" height="150px"></canvas>
-		<canvas id="vcb" nx="position" width="450px" height="150px"></canvas>
-		<canvas id="vcc" nx="position" width="450px" height="150px"></canvas>
-		<canvas id="vcd" nx="position" width="450px" height="150px"></canvas>
+		<canvas id="waveform" width="640px" height="280px"></canvas><br />
+    <canvas class="hslider" id="cca1" nx="slider" width="45px" height="150px"></canvas>
+		<canvas id="vca" nx="position" width="255px" height="150px"></canvas>
+    <canvas class="hslider" id="cca2" nx="slider" width="45px" height="150px"></canvas>
+		<canvas class="hslider" id="cca3" nx="slider" width="45px" height="150px"></canvas>
+    <canvas class="hslider" id="cca4" nx="slider" width="45px" height="150px"></canvas>
+		<canvas class="hslider" id="cca5" nx="slider" width="45px" height="150px"></canvas>
+		<canvas class="hslider" id="fxa" nx="slider" width="45px" height="150px"></canvas>
+    <canvas class="hslider" id="fxb" nx="slider" width="45px" height="150px"></canvas>
+		<canvas class="hslider" id="fxc" nx="slider" width="45px" height="150px"></canvas><br />
+    <canvas class="hslider" id="ccb1" nx="slider" width="45px" height="150px"></canvas>
+    <canvas id="vcb" nx="position" width="255px" height="150px"></canvas>
+    <canvas class="hslider" id="ccb2" nx="slider" width="45px" height="150px"></canvas>
+    <canvas class="hslider" id="ccb3" nx="slider" width="45px" height="150px"></canvas>
+    <canvas class="hslider" id="ccb4" nx="slider" width="45px" height="150px"></canvas>
+    <canvas class="hslider" id="ccb5" nx="slider" width="45px" height="150px"></canvas><br />
+    <canvas class="hslider" id="ccc1" nx="slider" width="45px" height="150px"></canvas>
+    <canvas id="vcc" nx="position" width="255px" height="150px"></canvas>
+    <canvas class="hslider" id="ccc2" nx="slider" width="45px" height="150px"></canvas>
+    <canvas class="hslider" id="ccc3" nx="slider" width="45px" height="150px"></canvas>
+    <canvas class="hslider" id="ccc4" nx="slider" width="45px" height="150px"></canvas>
+    <canvas class="hslider" id="ccc5" nx="slider" width="45px" height="150px"></canvas><br />    
 	</div>
 	<div id="editor">
-var omega = 220 * 2 * Math.PI / 44100;
-var pA = 0.15915494309189533576888376337251;
-var amplitude = .5;
-var z1 = .998;
+const pi = Math.PI;          // PI
+const opi = 1.0 / Math.PI;   // 1/PI
+const tau = 2.0 * Math.PI;   // 2*PI
+const fs = 48000.0;          // Sampling frequency
+const fc = 440.0;            // Ordinary frequency
+const omega = tau * fc / fs; // Angular frequency
+const z1 = .998;             // Lowpass filter pole
 
-vca.theta = 0, vca.t = 0, vca.n = 0;
-vcb.theta = 0, vcb.t = 0, vcb.n = 0;
-vcc.theta = 0, vcc.t = 0, vcc.n = 0;
-vcd.theta = 0, vcd.t = 0, vcd.n = 0;
+let mainOut  = 0.0;
+let delayOut = 0.0;
+let delay = Delay(16384);
 
 function process(a) {
+
+  // Loop through sample buffer
+  for (var t = 0; t < a.length; ++t) {
     
-  for (var k = 0; k < a.length; ++k) {
-      
-    vca.n = lowpass(vca.val.y * 10, vca.n, z1);
-    vcb.n = lowpass(vcb.val.y * 10, vcb.n, z1);
-    vcc.n = lowpass(vcc.val.y * 10, vcc.n, z1);
-    vcd.n = lowpass(vcd.val.y * 10, vcd.n, z1);
+    // Filter delay controller changes
+    fxa.n = lowpass(fxa.val, fxa.n, z1);               // Delay amplitude
+    fxb.n = lowpass(fxb.val * 0.99 + 0.01, fxb.n, z1); // Delay feedback        
+    fxc.n = lowpass(fxc.val * 16000 + 383, fxc.n, z1); // Delay time
     
-    vca.theta += vca.t = lowpass(vca.val.x * omega, vca.t, z1);
-    vcb.theta += vcb.t = lowpass(vcb.val.x * omega, vcb.t, z1);
-    vcc.theta += vcc.t = lowpass(vcc.val.x * omega, vcc.t, z1);
-    vcd.theta += vcd.t = lowpass(vcd.val.x * omega, vcd.t, z1);
+    // Filter oscillator harmonics controller changes
+    vca.n = lowpass(vca.val.y * cca3.val, vca.n, z1); // Oscillator harmonics ctrl A
+    vcb.n = lowpass(vcb.val.y * ccb3.val, vcb.n, z1); // Oscillator harmonics ctrl B
+    vcc.n = lowpass(vcc.val.y * ccc3.val, vcc.n, z1); // Oscillator harmonics ctrl C
     
-    a[k] = amplitude * 0.25 * (
-        square(vca.theta, vca.n) + 
-        square(vcb.theta, vcb.n) + 
-        square(vcc.theta, vcc.n) + 
-        square(vcd.theta, vcd.n)
-    );
+    // Calculate oscillator phases
+    vca.theta += vca.step = lowpass(vca.val.x * cca2.val, vca.step, z1); // Frequency ctrl A
+    vcb.theta += vcb.step = lowpass(vcb.val.x * ccb2.val, vcb.step, z1); // Frequency ctrl B
+    vcc.theta += vcc.step = lowpass(vcc.val.x * ccc2.val, vcc.step, z1); // Frequency ctrl C
+    
+    // Example of oscillator "drift"
+    //vca.theta *= 1.00000025;
+    
+    // Feedback matrix
+    vca.fb = cca4.val * vcc.out + cca5.val * vcb.out; // Feedback A
+    vcb.fb = ccb4.val * vca.out + ccb5.val * vcc.out; // Feedback B
+    vcc.fb = ccc4.val * vcb.out + ccc5.val * vca.out; // Feedback C
+
+    // Waveform output
+    vca.out =   square(vca.theta * omega, vca.n + vca.fb); // Out A
+    vcb.out = sawtooth(vcb.theta * omega, vcb.n + vcb.fb); // Out B
+    vcc.out = triangle(vcc.theta * omega, vcc.n + vcc.fb); // Out C
+    
+    // For a simple sine wave:
+    // vcc.out = Math.sin(vcc.theta * omega);
+    
+    // Filter oscillator amplitude controller changes
+    vca.amp = lowpass(cca1.val, vca.amp, z1); // Volume ctrl A
+    vcb.amp = lowpass(ccb1.val, vcb.amp, z1); // Volume ctrl B
+    vcc.amp = lowpass(ccc1.val, vcc.amp, z1); // Volume ctrl C
+    
+    // Main output (dry)
+    mainOut = 0.3333 * (vca.amp * vca.out + 
+                        vcb.amp * vcb.out + 
+                        vcc.amp * vcc.out);
+    
+    // Delay output (wet)
+    delayOut = fxa.n * delay.feedback(fxb.n).delay(fxc.n).run(mainOut);
+    
+    // Fill buffer at time=t
+    a[t] = 0.5 * (mainOut + delayOut);
   }
   
+  // Return buffer
   return a;
 }
 
-function square(x, m) {
-    var b = 0;
-    var a = m * Math.cos(x);
-    var f = Math.cos(2 * Math.PI * a);
-    
-    while (16 > a) {
-        b += pA / (.1875 + a*a + a++);
-    }
-    
-    return f*b-1;
+// Single LPF, suitable for controller changes
+function lowpass(x, n, z) {
+  return x + (n - x) * z;
 }
 
-function lowpass(x, n, z) {
-    return x + (n - x) * z;
-}</div>
+// Kirby's Bandlimited Square
+square = function (x, k) {
+  const c = Math.cos(x);
+  const v = 12.0 * k * c;
+  const s0 = digamma(0.75 - v);
+  const s1 = digamma(0.25 - v);
+  const s = s0 - s1;
+  const p = Math.cos(tau * v) * s;
+  return p * opi - 1.0;
+};
+
+// Kirby's Bandlimited Saw
+sawtooth = function (x, k) {
+  return Math.sin(x) * square(x, k);
+};
+
+// Kirby's Bandlimited Triangle?
+triangle = function (x, k) {
+  return sawtooth(x, k) * square(x, k);
+}
+
+// Asymptotic expansion of the Digamma function
+// https://en.wikipedia.org/wiki/Digamma_function#Asymptotic_expansion
+// Todo: use reflection formula for values less than 1/2?
+digamma = function (a) {
+  for (var b = 0; 12.0 > a; a++) {
+    b -= 1.0 / a;
+  }
+  return b += Math.log(a) - .5 / a, a *= a, b - (
+    .08333333333333333 - (
+      .008333333333333333 - (
+        .0039682539682539 - (
+          .004166666666666 - 1 / (
+            132 * a)) / a) / a) / a) / a;
+};
+
+// Delay (via opendsp)
+function Delay(size) {
+  if (!(this instanceof Delay)) return new Delay(size);
+  size = size || 16384;
+  this.buffer = new Float32Array(size);
+  this.size = size;
+  this.counter = 0;
+  this._feedback = 0.5;
+  this._delay = 16384;
+}
+
+Delay.prototype.feedback = function (n) {
+  this._feedback = n;
+  return this;
+};
+
+Delay.prototype.delay = function (n) {
+  this._delay = n;
+  return this;
+};
+
+Delay.prototype.run = function (inp) {
+  var back = this.counter - this._delay;
+  if (back < 0) back = this.size + back;
+  var index0 = Math.floor(back);
+
+  var index_1 = index0 - 1;
+  var index1 = index0 + 1;
+  var index2 = index0 + 2;
+
+  if (index_1 < 0) index_1 = this.size - 1;
+  if (index1 >= this.size) index1 = 0;
+  if (index2 >= this.size) index2 = 0;
+
+  var y_1 = this.buffer[index_1];
+  var y0 = this.buffer[index0];
+  var y1 = this.buffer[index1];
+  var y2 = this.buffer[index2];
+
+  var x = back - index0;
+
+  var c0 = y0;
+  var c1 = 0.5 * (y1 - y_1);
+  var c2 = y_1 - 2.5 * y0 + 2.0 * y1 - 0.5 * y2;
+  var c3 = 0.5 * (y2 - y_1) + 1.5 * (y0 - y1);
+
+  var out = ((c3 * x + c2) * x + c1) * x + c0;
+
+  this.buffer[this.counter] = inp + out * this._feedback;
+
+  this.counter++;
+
+  if (this.counter >= this.size) this.counter = 0;
+
+  return out;
+};      
+</div>
 </body>
-	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/ace.js"></script>
-	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.2/ace.js"></script>
+	<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
 	<script type="text/javascript" src="js/nexusUI.js" type="text/javascript"></script>
 	<script type="text/javascript" src="js/audiopen.js" type="text/javascript"></script>
 </html>

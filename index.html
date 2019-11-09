@@ -21,34 +21,34 @@
 				</a>
 			</li>
 		</div>
-		<canvas id="waveform" width="640px" height="280px"></canvas><br />
-    <canvas class="hslider" id="cca1" nx="slider" width="45px" height="150px"></canvas>
-		<canvas id="vca" nx="position" width="255px" height="150px"></canvas>
-    <canvas class="hslider" id="cca2" nx="slider" width="45px" height="150px"></canvas>
-		<canvas class="hslider" id="cca3" nx="slider" width="45px" height="150px"></canvas>
-    <canvas class="hslider" id="cca4" nx="slider" width="45px" height="150px"></canvas>
-		<canvas class="hslider" id="cca5" nx="slider" width="45px" height="150px"></canvas>
-		<canvas class="hslider" id="fxa" nx="slider" width="45px" height="150px"></canvas>
-    <canvas class="hslider" id="fxb" nx="slider" width="45px" height="150px"></canvas>
-		<canvas class="hslider" id="fxc" nx="slider" width="45px" height="150px"></canvas><br />
-    <canvas class="hslider" id="ccb1" nx="slider" width="45px" height="150px"></canvas>
-    <canvas id="vcb" nx="position" width="255px" height="150px"></canvas>
-    <canvas class="hslider" id="ccb2" nx="slider" width="45px" height="150px"></canvas>
-    <canvas class="hslider" id="ccb3" nx="slider" width="45px" height="150px"></canvas>
-    <canvas class="hslider" id="ccb4" nx="slider" width="45px" height="150px"></canvas>
-    <canvas class="hslider" id="ccb5" nx="slider" width="45px" height="150px"></canvas><br />
-    <canvas class="hslider" id="ccc1" nx="slider" width="45px" height="150px"></canvas>
-    <canvas id="vcc" nx="position" width="255px" height="150px"></canvas>
-    <canvas class="hslider" id="ccc2" nx="slider" width="45px" height="150px"></canvas>
-    <canvas class="hslider" id="ccc3" nx="slider" width="45px" height="150px"></canvas>
-    <canvas class="hslider" id="ccc4" nx="slider" width="45px" height="150px"></canvas>
-    <canvas class="hslider" id="ccc5" nx="slider" width="45px" height="150px"></canvas><br />    
+		<canvas id="waveform" width="640px" height="240px"></canvas><br />
+    <canvas class="hslider" id="cca1" nx="slider" width="45px" height="120px"></canvas>
+		<canvas id="vca" nx="position" width="255px" height="120px"></canvas>
+    <canvas class="hslider" id="cca2" nx="slider" width="45px" height="120px"></canvas>
+		<canvas class="hslider" id="cca3" nx="slider" width="45px" height="120px"></canvas>
+    <canvas class="hslider" id="cca4" nx="slider" width="45px" height="120px"></canvas>
+		<canvas class="hslider" id="cca5" nx="slider" width="45px" height="120px"></canvas>
+		<canvas class="hslider" id="fxa" nx="slider" width="45px" height="120px"></canvas>
+    <canvas class="hslider" id="fxb" nx="slider" width="45px" height="120px"></canvas>
+		<canvas class="hslider" id="fxc" nx="slider" width="45px" height="120px"></canvas><br />
+    <canvas class="hslider" id="ccb1" nx="slider" width="45px" height="120px"></canvas>
+    <canvas id="vcb" nx="position" width="255px" height="120px"></canvas>
+    <canvas class="hslider" id="ccb2" nx="slider" width="45px" height="120px"></canvas>
+    <canvas class="hslider" id="ccb3" nx="slider" width="45px" height="120px"></canvas>
+    <canvas class="hslider" id="ccb4" nx="slider" width="45px" height="120px"></canvas>
+    <canvas class="hslider" id="ccb5" nx="slider" width="45px" height="120px"></canvas><br />
+    <canvas class="hslider" id="ccc1" nx="slider" width="45px" height="120px"></canvas>
+    <canvas id="vcc" nx="position" width="255px" height="120px"></canvas>
+    <canvas class="hslider" id="ccc2" nx="slider" width="45px" height="120px"></canvas>
+    <canvas class="hslider" id="ccc3" nx="slider" width="45px" height="120px"></canvas>
+    <canvas class="hslider" id="ccc4" nx="slider" width="45px" height="120px"></canvas>
+    <canvas class="hslider" id="ccc5" nx="slider" width="45px" height="120px"></canvas><br />    
 	</div>
 	<div id="editor">
 const pi = Math.PI;          // PI
 const opi = 1.0 / Math.PI;   // 1/PI
 const tau = 2.0 * Math.PI;   // 2*PI
-const fs = 48000.0;          // Sampling frequency
+const fs = 44100.0;          // Sampling frequency
 const fc = 440.0;            // Ordinary frequency
 const omega = tau * fc / fs; // Angular frequency
 const z1 = .998;             // Lowpass filter pole

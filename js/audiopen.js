@@ -64,8 +64,8 @@ function AudioPen() {
     this.lastCodeChangeTime = 0;
     this.lastCompilationTime = 0;
     this.compilationDelay = 1E3;
-    this.sampleRate = 48000;
-    this.bufferSize = 1024;
+    this.sampleRate = 44100;
+    this.bufferSize = 2048;
     this.t = 0;
 }
 
